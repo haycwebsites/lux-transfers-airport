@@ -209,29 +209,21 @@ export interface DigitalProductsConfig {
 
 
 
+
 // =============================================================================
 // CONSTANTS
 // =============================================================================
 
 
 export const siteConfig: SiteConfig = {
-  title: {
-    el: 'Αεροδρόμιο Καλαμάτας - Μεταφορές - Lux Transfer Airport',
-    en: 'Kalamata Airport - Transfers - Lux Transfer Airport',
-  },
-  description: {
-    el: 'Χρειάζεστε ταξί από/προς το αεροδρόμιο Καλαμάτας; Κλείστε αξιόπιστη και άνετη μεταφορά με επαγγελματίες ντόπιους οδηγούς.',
-    en: 'Need a taxi to or from Kalamata airport? Book reliable, comfortable transfers with professional local drivers.',
-  },
+  title: { el: 'Αεροδρόμιο Καλαμάτας - Μεταφορές - Lux Transfer Airport', en: 'Kalamata Airport - Transfers - Lux Transfer Airport' },
+  description: { el: 'Χρειάζεστε ταξί από/προς το αεροδρόμιο Καλαμάτας; Κλείστε αξιόπιστη και άνετη μεταφορά με επαγγελματίες ντόπιους οδηγούς.', en: 'Need a taxi to or from Kalamata airport? Book reliable, comfortable transfers with professional local drivers.' },
   language: 'el',
-  keywords: {
-    el: 'Αεροδρόμιο Καλαμάτας, μεταφορές, ταξί',
-    en: 'Kalamata airport, transfers, taxi',
-  },
+  keywords: { el: 'Αεροδρόμιο Καλαμάτας, μεταφορές, ταξί', en: 'Kalamata airport, transfers, taxi' },
   ogImage: '/images/station-wagon-black-car-for-transfer-airport.webp',
   canonical: 'https://luxtransfersairport.gr/',
   siteId: 'lux-transfers-airport',
-  apiUrl: 'https://hayc.gr',
+  apiUrl: 'https://harmonious-embrace-staging.up.railway.app',
 };
 
 export const digitalProductsConfig: DigitalProductsConfig = {
