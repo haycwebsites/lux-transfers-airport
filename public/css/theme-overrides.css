@@ -1,0 +1,102 @@
+/* Ported from WordPress inline styles — do not conflict with bundle.css */
+
+.statistics-hero-row {
+  min-height: 238px;
+}
+
+body {
+  background-color: var(--bs-body-bg, #fff);
+}
+
+main#theme-main {
+  background-color: white;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Contact form (HAYC component) styled like WP CF7 */
+.contact-form {
+  width: 100%;
+}
+
+.contact-form .contact-form-input,
+.contact-form .contact-form-textarea {
+  border-radius: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #dee2e6;
+  display: block;
+}
+
+.contact-form .contact-form-button {
+  background: #4e63f8;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  width: 100%;
+}
+
+.contact-form .contact-form-button:hover {
+  background: #3c50c9;
+}
+
+.contact-form .contact-form-field {
+  margin-bottom: 1rem;
+}
+
+.contact-form .contact-form-field label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.contact-form .hidden,
+.contact-form [aria-hidden='true'].hidden {
+  display: none !important;
+}
+
+.contact-wrapper {
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: #fff;
+}
+
+.contact-left {
+  background: #eff3ff;
+  padding: 2rem;
+}
+
+.contact-left h1 {
+  color: #3a55d1;
+  font-weight: 700;
+}
+
+.info-card {
+  background: #ffffff;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.contact-right {
+  padding: 2rem;
+}
+
+.navbar-brand img {
+  max-height: 72px;
+  width: auto;
+}
+
+.blog-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Swiper nav: rotate next arrow */
+.sk-travel-swiper-container .swiper-button-next .icon svg {
+  transform: rotate(180deg);
+}
