@@ -28,6 +28,13 @@ function absoluteUrl(base: string, path: string) {
   return `${origin}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
+function assetOrigin(siteId: string) {
+  if (typeof window !== 'undefined' && window.location.origin) {
+    return window.location.origin;
+  }
+  return `https://${siteId}.hayc.gr`;
+}
+
 export default function SiteMeta() {
   const { t, img, config, locale } = useHayc();
   const location = useLocation();
@@ -36,15 +43,17 @@ export default function SiteMeta() {
   useEffect(() => {
     const title = t(site.title);
     const description = t(site.description);
+    const siteName = t(site.siteName);
     const canonicalBase = site.canonical.replace(/\/$/, '');
     const pageUrl = `${canonicalBase}${location.pathname === '/' ? '' : location.pathname}`;
-    const ogImage = absoluteUrl(canonicalBase, img(site.ogImage));
+    const ogImage = absoluteUrl(assetOrigin(site.siteId), img(site.ogImage));
 
     document.title = title;
     upsertMeta('name', 'description', description);
     upsertLink('canonical', pageUrl);
 
     upsertMeta('property', 'og:type', 'website');
+    upsertMeta('property', 'og:site_name', siteName);
     upsertMeta('property', 'og:title', title);
     upsertMeta('property', 'og:description', description);
     upsertMeta('property', 'og:url', pageUrl);

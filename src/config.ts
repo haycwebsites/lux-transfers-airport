@@ -14,6 +14,7 @@ export interface LocaleString {
 export interface SiteConfig {
   title: LocaleString;
   description: LocaleString;
+  siteName: LocaleString;
   language: string;
   keywords: LocaleString;
   ogImage: string;
@@ -219,6 +220,7 @@ export interface DigitalProductsConfig {
 export const siteConfig: SiteConfig = {
   title: { el: 'Αεροδρόμιο Καλαμάτας - Μεταφορές - Lux Transfer Airport', en: 'Kalamata Airport - Transfers - Lux Transfer Airport' },
   description: { el: 'Χρειάζεστε ταξί από/προς το αεροδρόμιο Καλαμάτας; Κλείστε αξιόπιστη και άνετη μεταφορά με επαγγελματίες ντόπιους οδηγούς.', en: 'Need a taxi to or from Kalamata airport? Book reliable, comfortable transfers with professional local drivers.' },
+  siteName: { el: 'Lux Transfer Airport', en: 'Lux Transfer Airport' },
   language: 'el',
   keywords: { el: 'Αεροδρόμιο Καλαμάτας, μεταφορές, ταξί', en: 'Kalamata airport, transfers, taxi' },
   ogImage: '/images/station-wagon-black-car-for-transfer-airport.webp',
