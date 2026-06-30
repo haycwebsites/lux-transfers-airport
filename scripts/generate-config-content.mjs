@@ -4,12 +4,26 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
+const configPath = path.join(root, 'src/config.ts');
 
 const posts = JSON.parse(fs.readFileSync(path.join(root, 'scripts/wp-blog-data.json'), 'utf8'));
 const pages = JSON.parse(fs.readFileSync(path.join(root, 'scripts/wp-pages-data.json'), 'utf8'));
 
 posts.forEach((p) => {
-  if (!p.image) p.image = '/images/main-article-image.webp';
+  if (!p.image) {
+    const html = p.content?.el || p.content?.en || '';
+    const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+    if (match) {
+      try {
+        const url = new URL(match[1], 'https://luxtransfersairport.gr');
+        p.image = `/images/blog/${url.pathname.split('/').pop()}`;
+      } catch {
+        p.image = '/images/main-article-image.webp';
+      }
+    } else {
+      p.image = '/images/main-article-image.webp';
+    }
+  }
 });
 
 const bookingPageConfig = {
@@ -47,14 +61,25 @@ const privacyConfig = {
   content: { el: pages.privacy, en: pages.privacy },
 };
 
-const out = `// AUTO-GENERATED from scripts/generate-config-content.mjs — do not edit by hand
+const generatedBlock = `export const blogConfig: BlogConfig = ${JSON.stringify(blogConfig, null, 2)};
 
-export const blogConfig = ${JSON.stringify(blogConfig, null, 2)};
+export const privacyConfig: PrivacyConfig = ${JSON.stringify(privacyConfig, null, 2)};
 
-export const privacyConfig = ${JSON.stringify(privacyConfig, null, 2)};
-
-export const bookingPageConfig = ${JSON.stringify(bookingPageConfig, null, 2)};
+export const bookingPageConfig: BookingPageConfig = ${JSON.stringify(bookingPageConfig, null, 2)};
 `;
 
-fs.writeFileSync(path.join(root, 'src/config-generated.ts'), out);
-console.log('Wrote src/config-generated.ts');
+let config = fs.readFileSync(configPath, 'utf8');
+
+config = config.replace(
+  /import \{\n  blogConfig as generatedBlogConfig,\n  privacyConfig as generatedPrivacyConfig,\n  bookingPageConfig as generatedBookingPageConfig,\n\} from '\.\/config-generated';\n\n/,
+  '',
+);
+
+const marker = 'export const blogConfig: BlogConfig = ';
+const idx = config.indexOf(marker);
+if (idx === -1) {
+  throw new Error('Could not find blogConfig export in src/config.ts');
+}
+
+fs.writeFileSync(configPath, config.slice(0, idx) + generatedBlock);
+console.log('Updated src/config.ts (blog, privacy, booking sections)');

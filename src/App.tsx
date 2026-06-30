@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { HaycProvider } from './hayc/config-context';
 import { useAnalytics } from './hayc/use-analytics';
 import ScrollToTop from './components/ScrollToTop';
+import SiteMeta from './components/SiteMeta';
 import InternalLinkHandler from './components/InternalLinkHandler';
 import IndexPage from './pages/IndexPage';
 import BookingPage from './pages/BookingPage';
@@ -20,6 +21,7 @@ function AppContent() {
 
   return (
     <>
+      <SiteMeta />
       <ScrollToTop />
       <InternalLinkHandler />
       <AppRoutes />
