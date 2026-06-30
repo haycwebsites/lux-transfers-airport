@@ -38,6 +38,9 @@ export default function InternalLinkHandler() {
       if (!anchor) return;
       if (anchor.target === '_blank') return;
 
+      // Only rewrite links inside CMS HTML — not React Router nav links
+      if (!anchor.closest('.blog-content, .privacy-page-content')) return;
+
       const href = anchor.getAttribute('href');
       if (!href || href.startsWith('mailto:') || href.startsWith('tel:')) return;
 

@@ -96,6 +96,29 @@ main#theme-main {
   height: auto;
 }
 
+/* Language switcher — compact dropdown like Polylang */
+.navbar-nav .dropdown-menu.depth_0 {
+  min-width: auto;
+  padding: 0.25rem 0;
+}
+
+.navbar-nav .dropdown-menu.depth_0 .dropdown-item {
+  padding: 0.35rem 0.75rem;
+}
+
+.navbar-nav .dropdown-menu.depth_0 img {
+  display: block;
+}
+
+/* Privacy policy page — match WP LiveCanvas empty template */
+.privacy-page-content a {
+  color: inherit;
+}
+
+.privacy-page-content p {
+  text-align: left;
+}
+
 /* Swiper nav: rotate next arrow */
 .sk-travel-swiper-container .swiper-button-next .icon svg {
   transform: rotate(180deg);

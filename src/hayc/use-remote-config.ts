@@ -86,8 +86,14 @@ export async function fetchRemoteConfig(): Promise<RemoteConfig> {
   try {
     const res = await fetch('/hayc/config.json');
     if (!res.ok) throw new Error('Failed to fetch config: ' + res.status);
-    const data = await res.json();
-    return data as RemoteConfig;
+    const data = (await res.json()) as Partial<RemoteConfig>;
+    return {
+      ...defaultConfig,
+      ...data,
+      privacyConfig: data.privacyConfig ?? defaultConfig.privacyConfig,
+      blogConfig: data.blogConfig ?? defaultConfig.blogConfig,
+      bookingPageConfig: data.bookingPageConfig ?? defaultConfig.bookingPageConfig,
+    };
   } catch (err) {
     console.warn('[HAYC] Remote config fetch failed, using default config.', err);
     return defaultConfig;
