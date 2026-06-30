@@ -1,0 +1,62 @@
+name: Validate Sync Config
+
+on:
+  pull_request:
+    paths:
+      - 'sync-files.json'
+      - '.github/workflows/sync-template.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Check sync-files.json matches paths in sync-template.yml
+        run: |
+          echo "→ Reading allowlist from sync-files.json..."
+          ALLOWLIST=$(jq -r '.files[]' sync-files.json | sort)
+
+          echo "→ Reading paths from sync-template.yml..."
+          WORKFLOW_PATHS=$(grep -A 100 '^    paths:' .github/workflows/sync-template.yml \
+            | grep -E "^\s+-\s+" \
+            | sed "s/.*- '//" \
+            | sed "s/'.*//" \
+            | sed "s/.*- //" \
+            | grep -v 'sync-files.json' \
+            | sort)
+
+          echo ""
+          echo "=== Allowlist (sync-files.json) ==="
+          echo "$ALLOWLIST"
+          echo ""
+          echo "=== Workflow paths (sync-template.yml) ==="
+          echo "$WORKFLOW_PATHS"
+          echo ""
+
+          MISSING_IN_WORKFLOW=$(comm -23 <(echo "$ALLOWLIST") <(echo "$WORKFLOW_PATHS"))
+          MISSING_IN_ALLOWLIST=$(comm -13 <(echo "$ALLOWLIST") <(echo "$WORKFLOW_PATHS"))
+
+          FAILED=false
+
+          if [ -n "$MISSING_IN_WORKFLOW" ]; then
+            echo "❌ These files are in sync-files.json but MISSING from the paths trigger in sync-template.yml:"
+            echo "$MISSING_IN_WORKFLOW"
+            FAILED=true
+          fi
+
+          if [ -n "$MISSING_IN_ALLOWLIST" ]; then
+            echo "❌ These files are in the paths trigger in sync-template.yml but MISSING from sync-files.json:"
+            echo "$MISSING_IN_ALLOWLIST"
+            FAILED=true
+          fi
+
+          if [ "$FAILED" = true ]; then
+            echo ""
+            echo "👆 Please keep sync-files.json and the paths: trigger in sync-template.yml in sync."
+            exit 1
+          fi
+
+          echo "✅ sync-files.json and sync-template.yml paths are consistent."

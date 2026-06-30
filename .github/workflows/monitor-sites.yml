@@ -1,0 +1,72 @@
+name: Monitor Sites
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    if: github.repository == 'haycwebsites/hayc-websites-template'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check all sites
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_REPOS_TOKEN }}
+        run: |
+          FAILED=0
+          REPOS=$(jq -r '.repos[]' repos.json)
+          
+          for REPO in $REPOS; do
+            SITE_ID=$(gh api "repos/$REPO/actions/variables/SITE_ID" --jq '.value' 2>/dev/null)
+            
+            if [ -z "$SITE_ID" ]; then
+              echo "⚠️  $REPO — no SITE_ID variable found"
+              continue
+            fi
+
+            URL="https://$SITE_ID.hayc.gr"
+            
+            METRICS=$(curl -o /tmp/response_body.txt -s \
+              -w "%{http_code}|%{time_total}|%{time_namelookup}|%{time_connect}|%{time_appconnect}|%{num_redirects}|%{ssl_verify_result}|%{size_download}" \
+              --max-time 15 "$URL")
+
+            HTTP_CODE=$(echo $METRICS | cut -d'|' -f1)
+            TIME_TOTAL=$(echo $METRICS | cut -d'|' -f2)
+            TIME_DNS=$(echo $METRICS | cut -d'|' -f3)
+            TIME_CONNECT=$(echo $METRICS | cut -d'|' -f4)
+            TIME_SSL=$(echo $METRICS | cut -d'|' -f5)
+            REDIRECTS=$(echo $METRICS | cut -d'|' -f6)
+            SSL_VALID=$(echo $METRICS | cut -d'|' -f7)
+            SIZE=$(echo $METRICS | cut -d'|' -f8)
+
+            HAS_HTML=$(grep -c "<html" /tmp/response_body.txt 2>/dev/null || echo "0")
+
+            SSL_STATUS="✅ valid"
+            if [ "$SSL_VALID" != "0" ]; then
+              SSL_STATUS="❌ invalid"
+            fi
+
+            CONTENT_STATUS="✅ html found"
+            if [ "$HAS_HTML" -eq 0 ]; then
+              CONTENT_STATUS="⚠️  no html in response"
+            fi
+
+            if [ "$HTTP_CODE" -eq 200 ]; then
+              echo "✅ $SITE_ID.hayc.gr"
+              echo "   status: $HTTP_CODE | total: ${TIME_TOTAL}s | dns: ${TIME_DNS}s | connect: ${TIME_CONNECT}s | ssl: ${TIME_SSL}s"
+              echo "   redirects: $REDIRECTS | size: ${SIZE} bytes | ssl: $SSL_STATUS | content: $CONTENT_STATUS"
+            else
+              echo "❌ $SITE_ID.hayc.gr"
+              echo "   status: $HTTP_CODE | total: ${TIME_TOTAL}s | dns: ${TIME_DNS}s | connect: ${TIME_CONNECT}s | ssl: ${TIME_SSL}s"
+              echo "   redirects: $REDIRECTS | size: ${SIZE} bytes | ssl: $SSL_STATUS | content: $CONTENT_STATUS"
+              FAILED=1
+            fi
+
+            echo "---"
+          done
+
+          exit $FAILED

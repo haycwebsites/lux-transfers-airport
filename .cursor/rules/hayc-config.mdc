@@ -1,0 +1,230 @@
+---
+description: Apply HAYC remote config pattern to React components
+globs: src/sections/*.tsx, src/components/*.tsx, src/pages/*.tsx
+---
+
+# HAYC Config Pattern
+
+This project uses a remote config system. All user-facing text and images must go through the HAYC helpers. Never hardcode text or image paths directly in JSX.
+
+## Critical Setup (Do First!)
+
+### 1. Wrap App with HaycProvider
+The `HaycProvider` MUST wrap the entire app in `App.tsx`. Without this, any component using `useHayc()` will crash with "useHayc must be used inside HaycProvider".
+
+```tsx
+// src/App.tsx
+import { HaycProvider } from './hayc/config-context';
+
+function App() {
+  return (
+    <HaycProvider>
+      <BrowserRouter>
+        {/* ... routes ... */}
+      </BrowserRouter>
+    </HaycProvider>
+  );
+}
+```
+
+### 2. Install Required Dependencies
+Before running the app, ensure these common dependencies are installed:
+```bash
+npm install react-router-dom
+```
+Do not remove anything from package.json, just additions
+
+### 3. Populate Config Values with Actual Content
+When adding fields to `config.ts`, do NOT leave them as empty strings:
+```tsx
+// ❌ Wrong — will render nothing
+brandName: { el: '', en: '' },
+
+// ✅ Correct — populate with actual content
+brandName: { el: 'Portfolio', en: 'Portfolio' },
+```
+
+## Rules
+
+### 1. Always import and call useHayc
+Every component in `src/sections/`, `src/components/`, and `src/pages/` must:
+```tsx
+import { useHayc } from '../hayc/config-context';
+
+const { t, img, config, cp } = useHayc();
+```
+
+### 2. All text must use t()
+Never render a LocaleString object directly. Always wrap with t():
+```tsx
+// ❌ Wrong
+<h1>{config.heroConfig.mainTitle}</h1>
+
+// ✅ Correct
+<h1>{t(config.heroConfig.mainTitle)}</h1>
+```
+
+### 3. All image paths must use img()
+```tsx
+// ❌ Wrong
+<img src={config.heroConfig.backgroundImage} />
+
+// ✅ Correct
+<img src={img(config.heroConfig.backgroundImage)} />
+```
+
+### 4. No hardcoded user-facing strings in JSX
+Any string a user can read must live in config.ts as a LocaleString:
+```tsx
+// ❌ Wrong
+<div className="text-xs">View All</div>
+
+// ✅ Correct — add to config.ts first, then:
+<div className="text-xs">{t(config.featuredProjectsConfig.viewAllButton)}</div>
+```
+
+### 5. Adding new content to config.ts
+When a component needs a new text field:
+- Add the field to the correct interface in config.ts as `LocaleString`
+- Add the value to the config object with ACTUAL content: `{ el: 'Greek text', en: 'English text' }`
+- Use `t()` in the component
+- **IMPORTANT:** Never leave values as empty strings — the UI will be blank!
+
+### 6. Adding new image fields to config.ts
+- Add the field as plain `string` (not LocaleString)
+- Add the value with the actual image URL/path (not empty string)
+- Use `img()` in the component
+
+### 7. Fields that stay as plain string (never LocaleString)
+- Image paths
+- Icon names (e.g. "MapPin", "Instagram")
+- href / anchor values
+- id fields
+- CSS filter values
+- formEndpoint, newsletterEndpoint, canonical, ogImage
+- glowColor, filter, language
+
+---
+
+## Click-to-Edit (CMS Edit Mode)
+
+This site supports a **click-to-edit** feature. When the HAYC CMS opens the site in the iframe and the admin enables "Edit Mode", clicking any text element in the site opens the corresponding field in the CMS sidebar.
+
+### How it works
+- `useHayc()` exposes a `cp(path: string)` helper
+- Spread `{...cp('configKey.fieldName')}` on any JSX element whose text comes from config
+- In edit mode, clicking that element sends a `HAYC_FIELD_FOCUS` message to the CMS parent, which opens the correct sidebar section and highlights the field
+- In edit mode, ALL clicks are intercepted — navigation and button actions are blocked so the admin can click freely without triggering routes
+
+### Rule: spread cp() on every element that renders config text
+
+The path must exactly match the config key path used in `t()` or `img()`:
+
+```tsx
+// ❌ Wrong — no cp(), click-to-edit won't work for this element
+<h1>{t(config.heroConfig.mainTitle)}</h1>
+
+// ✅ Correct — cp() path mirrors the config key used in t()
+<h1 {...cp('heroConfig.mainTitle')}>{t(config.heroConfig.mainTitle)}</h1>
+```
+
+### Path convention
+The path is always `configObjectName.fieldName`, matching the exact keys in `config.ts`:
+
+```tsx
+// Navigation
+<span {...cp('navigationConfig.brandName')}>{t(config.navigationConfig.brandName)}</span>
+<a {...cp('navigationConfig.bookViewingLink')}>{t(config.navigationConfig.bookViewingLink)}</a>
+
+// Hero
+<h1 {...cp('heroConfig.mainTitle')}>{t(config.heroConfig.mainTitle)}</h1>
+<p {...cp('heroConfig.subtitle')}>{t(config.heroConfig.subtitle)}</p>
+<button {...cp('heroConfig.requestTourButton')}>{t(config.heroConfig.requestTourButton)}</button>
+
+// Nested / array fields
+<p {...cp('faqConfig.items.0.question')}>{t(config.faqConfig.items[0].question)}</p>
+```
+
+### What cp() returns
+- **Edit mode OFF:** `{}` — no effect on the element whatsoever
+- **Edit mode ON:** `{ 'data-config-path': path, onClick: ..., style: { cursor: 'pointer' } }`
+
+So spreading `{...cp(...)}` is always safe — it has zero effect when not in edit mode.
+
+### When adding a new section or component
+For every new component that renders config text:
+1. Destructure `cp` from `useHayc()` alongside `t`, `img`, `config`
+2. Add `{...cp('sectionConfig.fieldName')}` to every element that renders a config value
+3. The path must be the first-level config key + field name, matching exactly what you pass to `t()`
+
+---
+
+## When integrating a new Kimi or Relume export
+
+1. **Verify HaycProvider** wraps the app in `App.tsx`
+2. Copy the new sections and components into src/sections/ and src/components/
+3. For each component:
+   - Add `const { t, img, config, cp } = useHayc();`
+   - Move all hardcoded text into config.ts as LocaleString fields **with actual values**
+   - Move all hardcoded image paths into config.ts as string fields **with actual URLs**
+   - Replace all hardcoded values in JSX with `t()` or `img()` calls
+   - Add `{...cp('configKey.fieldName')}` to every element that renders config text
+4. **Update use-remote-config.ts** — add new config exports to both:
+   - The import statement
+   - The `RemoteConfig` interface
+   - The `defaultConfig` object
+5. **Update scripts/export-config.ts** — add new config exports to both:
+   - The import statement
+   - The `config` object
+6. Run `tsc --noEmit` — fix any TypeScript errors
+7. Run `npm run dev` — verify the component renders correctly **with visible text**
+8. **Deploy:** Use `npm run build:full` for manual deploys, or push to trigger GitHub Actions
+
+## Deployment Workflow (CRITICAL!)
+
+The app fetches config from `/hayc/config.json` at runtime. This file must stay in sync with `src/config.ts`.
+
+### When adding new config sections:
+
+1. **Update `scripts/export-config.ts`** — Add new config exports to both:
+   - The import statement at the top
+   - The `config` object being exported
+
+```ts
+// scripts/export-config.ts
+import {
+  // ... existing imports ...
+  myNewConfig,  // ← Add here
+} from '../src/config.js';
+
+const config = {
+  // ... existing configs ...
+  myNewConfig,  // ← And here
+};
+```
+
+### Why this matters:
+- In development, `use-remote-config.ts` uses `defaultConfig` (from config.ts) as fallback
+- In production, the app fetches `/hayc/config.json` from the server
+- If `config.json` is missing new fields, those will be `undefined` → runtime errors like `Cannot read properties of undefined`
+
+## Common Mistakes to Avoid
+
+1. **Forgetting HaycProvider** — Causes "useHayc must be used inside HaycProvider" error
+2. **Empty config values** — UI renders but shows no text
+3. **Missing dependencies** — "Failed to resolve import" errors
+4. **Not updating use-remote-config.ts** — New config objects won't be available in components
+5. **Using t() on non-LocaleString fields** — Type errors; use plain values for images, hrefs, icons
+6. **Not updating export-config.ts** — Production `config.json` won't have new fields → runtime errors in production only
+7. **Using `npm run build` instead of `npm run build:full`** — Config won't be exported for manual deploys
+8. **Forgetting cp() on elements** — Click-to-edit won't work for that element in the CMS
+9. **Wrong cp() path** — CMS opens the wrong section; path must exactly match the config key used in t()
+
+### Before Every Work Session
+
+Always run `pull-config` before making any changes:
+```bash
+npm run pull-config
+```
+
+This fetches the latest `config.json` from S3 and updates `src/config.ts` with the client's current content. Skipping this step will cause client changes made via the HAYC dashboard to be overwritten on the next deploy.

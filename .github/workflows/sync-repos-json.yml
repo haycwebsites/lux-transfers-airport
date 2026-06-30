@@ -1,0 +1,57 @@
+name: Sync repos.json from GitHub
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync-repos-json:
+    runs-on: ubuntu-latest
+    if: github.repository == 'haycwebsites/hayc-websites-template'
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout template repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.SYNC_REPOS_TOKEN }}
+
+      - name: Fetch all repos using this template
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_REPOS_TOKEN }}
+        run: |
+          ALL_REPOS=()
+          PAGE=1
+          while true; do
+            RESPONSE=$(gh api \
+              "search/repositories?q=topic:hayc-template-derived+org:haycwebsites&per_page=100&page=$PAGE" \
+              --jq '.items[].full_name')
+            
+            if [ -z "$RESPONSE" ]; then
+              break
+            fi
+            
+            while IFS= read -r line; do
+              ALL_REPOS+=("$line")
+            done <<< "$RESPONSE"
+            
+            PAGE=$((PAGE + 1))
+          done
+
+          printf '%s\n' "${ALL_REPOS[@]}" | sort | jq -R . | jq -s '{"repos": .}' > repos.json
+          cat repos.json
+
+      - name: Commit if changed
+        run: |
+          git config user.name "hayc-bot"
+          git config user.email "bot@hayc.gr"
+          
+          if git diff --quiet repos.json; then
+            echo "No changes to repos.json"
+          else
+            git add repos.json
+            git commit -m "chore: auto-sync repos.json [skip ci]"
+            git push
+          fi

@@ -1,0 +1,97 @@
+name: Sync Template to Connected Repos
+
+on:
+  push:
+    branches:
+      - main
+    paths: # Only trigger if a synced file actually changed
+      - '.github/workflows/deploy.yml'
+      - '.cursor/rules/hayc-config.mdc'
+      - 'scripts/pull-config.ts'
+      - 'scripts/sync-baseline.ts'
+      - 'tsconfig.json'
+      - 'tsconfig.app.json'
+      - 'tsconfig.node.json'
+      - 'tsconfig.scripts.json'
+      - 'postcss.config.js'
+      - 'eslint.config.js'
+      - 'src/hayc/config-context.tsx'
+      - 'src/components/ContactForm.tsx'
+      - 'src/components/NewsletterForm.tsx'
+      - 'src/hayc/use-analytics.ts'
+      - 'src/hayc/use-contact-form.ts'
+      - 'src/hayc/use-newsletter-form.ts'
+      - 'digital-products.dummy.json'
+      - '.github/workflows/monitor-sites.yml'
+      - '.github/workflows/sync-repos-json.yml'
+      - 'sync-files.json' # Also trigger if the allowlist itself changes
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    if: |
+      github.repository == 'haycwebsites/hayc-websites-template' &&
+      (github.event_name == 'workflow_dispatch' || github.run_number != 1) &&
+      !contains(github.event.head_commit.message, 'chore: sync config from template')
+    env:
+        GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
+    steps:
+      - name: Checkout template repo
+        uses: actions/checkout@v4
+
+      - name: Read registry and sync files
+        run: |
+          REPOS=$(jq -r '.repos[]' repos.json)
+          FILES=$(jq -r '.files[]' sync-files.json)
+          BRANCH="sync/template-$(date +'%Y%m%d-%H%M%S')"
+
+          for REPO in $REPOS; do
+            echo "→ Syncing to $REPO"
+
+            # Clone the target repo
+            git clone https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git target-repo
+            cd target-repo
+
+            # Enable auto-merge on the derived repo if not already enabled
+            gh repo edit $REPO --enable-auto-merge
+
+            # Create a new branch for the sync PR
+            git checkout -b $BRANCH
+
+            # Copy each file from the template into the target repo
+            for FILE in $FILES; do
+              mkdir -p $(dirname $FILE)
+              cp ../$FILE $FILE
+            done
+
+            # Commit and push if there are changes
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add .
+
+            if git diff --cached --quiet; then
+              echo "No changes for $REPO, skipping."
+            else
+              git commit -m "chore: sync config from template"
+              git push origin $BRANCH
+
+              # Open a PR and immediately auto-merge it
+              gh pr create \
+                --repo $REPO \
+                --head $BRANCH \
+                --base main \
+                --title "chore: sync config updates from template" \
+                --body "Automated sync from the template repository." \
+
+              # Ensure auto-merge is enabled on the repo before enabling it on the PR
+              gh repo edit $REPO --enable-auto-merge
+
+              gh pr merge $BRANCH \
+                --repo $REPO \
+                --squash \
+                --delete-branch
+            fi
+
+            cd ..
+            rm -rf target-repo
+          done

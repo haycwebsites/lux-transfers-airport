@@ -1,0 +1,68 @@
+name: Deploy to S3
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, 'Initial commit')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-north-1
+      - name: Pull latest config from S3
+        run: npm run pull-config
+        env:
+          VITE_SITE_ID: ${{ vars.SITE_ID }}
+      - name: Build + export config
+        run: npm run build:full
+      - name: Sync baseline from config
+        run: npm run sync-baseline
+      - name: Commit config sync
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add scripts/.config-base.json src/config.ts
+          git diff --staged --quiet || git commit -m "chore: sync config after deploy [skip ci]"
+          git remote set-url origin https://x-access-token:${{ secrets.BOT_PAT }}@github.com/${{ github.repository }}
+          git push
+        env:
+          BOT_PAT: ${{ secrets.BOT_PAT }}
+      - name: Sync dist to S3
+        run: |
+          aws s3 sync dist/ s3://hayc-react-apps/sites/${{ vars.SITE_ID }}/dist/ \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "index.html" \
+            --exclude "hayc/config.json"
+          aws s3 cp dist/index.html s3://hayc-react-apps/sites/${{ vars.SITE_ID }}/dist/index.html \
+            --cache-control "public, max-age=0, must-revalidate"
+          aws s3 cp dist/hayc/config.json s3://hayc-react-apps/sites/${{ vars.SITE_ID }}/config/config.json \
+            --cache-control "public, max-age=60"
+      - name: Purge Cloudflare cache
+        run: |
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "files": [
+                "https://${{ vars.SITE_ID }}.hayc.gr/index.html",
+                "https://${{ vars.SITE_ID }}.hayc.gr/hayc/config.json"
+              ]
+            }'
