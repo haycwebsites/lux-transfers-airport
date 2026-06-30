@@ -461,7 +461,7 @@ import {
   blogConfig as blogConfigGenerated,
   privacyConfig as privacyConfigGenerated,
   bookingPageConfig as bookingPageConfigGenerated,
-} from './config-generated';
+} from './config-generated.js';
 
 export const blogConfig: BlogConfig = blogConfigGenerated;
 export const privacyConfig: PrivacyConfig = privacyConfigGenerated;

@@ -7,6 +7,6 @@
     "rootDir": ".",
     "noEmit": false
   },
-  "include": ["scripts/**/*", "src/config.ts"],
+  "include": ["scripts/**/*", "src/config.ts", "src/config-generated.ts"],
   "exclude": ["scripts/pull-config.ts"]
 }
