@@ -34,17 +34,15 @@ export default function HeroSection() {
             <AppLink
               to={config.navigationConfig.bookNowHref}
               className="text-white text-decoration-none d-flex align-items-center gap-2 underlined-link"
-              {...cp('heroConfig.bookNowLabel')}
             >
-              <span>{t(hero.bookNowLabel)}</span>
+              <span {...cp('heroConfig.bookNowLabel')}>{t(hero.bookNowLabel)}</span>
               <ArrowIcon className="text-light" />
             </AppLink>
             <AppLink
               to="/#contact"
               className="text-white text-decoration-none bg-black p-2 rounded-5 d-flex align-items-center gap-2 underlined-link"
-              {...cp('heroConfig.contactLabel')}
             >
-              <span>{t(hero.contactLabel)}</span>
+              <span {...cp('heroConfig.contactLabel')}>{t(hero.contactLabel)}</span>
               <ArrowIcon className="text-light" />
             </AppLink>
           </div>

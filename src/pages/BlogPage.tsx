@@ -31,7 +31,7 @@ export default function BlogPage() {
                     {...cp(`blogConfig.posts.${i}.image`)}
                   />
                   <div className="card-body">
-                    <span className="badge bg-primary rounded-pill mb-2">{t(blog.title)}</span>
+                    <span className="badge bg-primary rounded-pill mb-2" {...cp('blogConfig.title')}>{t(blog.title)}</span>
                     <h2 className="h5 card-title">
                       <Link to={`/blog/${encodeURIComponent(post.slug)}`} className="stretched-link text-decoration-none text-dark" {...cp(`blogConfig.posts.${i}.title`)}>
                         {t(post.title)}

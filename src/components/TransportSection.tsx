@@ -34,7 +34,6 @@ export default function TransportSection() {
                 <span className="text-dark">{t(transport.subtitle)}</span>
               </p>
               <BookNowButton
-                configPath="transportConfig.bookNowLabel"
                 labelPath="transportConfig.bookNowLabel"
                 label={t(transport.bookNowLabel)}
               />

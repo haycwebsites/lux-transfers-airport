@@ -10,9 +10,8 @@ export default function WhatsAppButton() {
       target="_blank"
       rel="noopener noreferrer"
       className="ht-ctc ht-ctc-chat ctc-analytics"
-      {...cp('whatsAppConfig.label')}
     >
-      <span className="ht-ctc-text">{t(wa.label)}</span>
+      <span className="ht-ctc-text" {...cp('whatsAppConfig.label')}>{t(wa.label)}</span>
     </a>
   );
 }

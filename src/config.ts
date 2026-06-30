@@ -229,7 +229,7 @@ export const siteConfig: SiteConfig = {
   },
   ogImage: '/images/station-wagon-black-car-for-transfer-airport.webp',
   canonical: 'https://luxtransfersairport.gr/',
-  siteId: '',
+  siteId: 'lux-transfers-airport',
   apiUrl: 'https://hayc.gr',
 };
 

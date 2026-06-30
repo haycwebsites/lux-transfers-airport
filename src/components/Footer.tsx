@@ -56,9 +56,8 @@ export default function Footer() {
               <AppLink
                 to={config.navigationConfig.bookNowHref}
                 className="btn btn-light rounded-pill text-black p-3 d-inline-flex align-items-center gap-2 btn-with-arrow"
-                {...cp('footerConfig.bookNowLabel')}
               >
-                <span>{t(footer.bookNowLabel)}</span>
+                <span {...cp('footerConfig.bookNowLabel')}>{t(footer.bookNowLabel)}</span>
                 <ArrowIcon className="text-black" />
               </AppLink>
             </div>

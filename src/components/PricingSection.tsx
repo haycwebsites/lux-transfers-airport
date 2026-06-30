@@ -40,10 +40,12 @@ function PricingCard({
           {t(route.title)}
         </h5>
         <p className="text-secondary rfs-6 m-0">
-          <i className="fas fa-money-bill" /> {priceLabel}{' '}
+          <i className="fas fa-money-bill" />{' '}
+          <span {...cp('pricingConfig.priceLabel')}>{priceLabel}</span>{' '}
           <strong {...cp(`pricingConfig.routes.${index}.price`)}>{t(route.price)}</strong>
           <br />
-          <i className="fas fa-clock" /> {durationLabel}{' '}
+          <i className="fas fa-clock" />{' '}
+          <span {...cp('pricingConfig.durationLabel')}>{durationLabel}</span>{' '}
           <strong {...cp(`pricingConfig.routes.${index}.duration`)}>{t(route.duration)}</strong>
           <br />
           <i className="fas fa-map-marker-alt" />{' '}
@@ -121,7 +123,6 @@ export default function PricingSection() {
         </div>
         <div className="d-flex justify-content-center mt-4">
           <BookNowButton
-            configPath="pricingConfig.bookNowLabel"
             labelPath="pricingConfig.bookNowLabel"
             label={t(pricing.bookNowLabel)}
           />

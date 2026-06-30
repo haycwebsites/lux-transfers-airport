@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { HaycProvider } from './hayc/config-context';
+import { useAnalytics } from './hayc/use-analytics';
 import ScrollToTop from './components/ScrollToTop';
 import InternalLinkHandler from './components/InternalLinkHandler';
 import IndexPage from './pages/IndexPage';
@@ -10,6 +11,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import { blogConfig } from './config';
 
 function AppContent() {
+  useAnalytics();
   const { pathname, search, hash } = useLocation();
   if (pathname.length > 1 && pathname.endsWith('/')) {
     const target = `${pathname.replace(/\/+$/, '')}${search}${hash}`;

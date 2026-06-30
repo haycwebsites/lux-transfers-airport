@@ -10,7 +10,7 @@ export default function Navbar() {
       <div>
         <nav className="navbar navbar-expand-lg navbar-light bg-white">
           <div className="container">
-            <AppLink className="navbar-brand" to="/">
+            <AppLink className="navbar-brand" to="/" title={t(nav.logoAlt)} {...cp('navigationConfig.logoAlt')}>
               <img
                 src={img(nav.logo)}
                 width={110}

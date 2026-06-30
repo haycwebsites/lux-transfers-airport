@@ -49,6 +49,7 @@ export default function DestinationsSwiper() {
                 <div
                   className="overlay"
                   style={{ background: `url(${img(item.image)}) center / cover no-repeat` }}
+                  {...cp(`destinationsConfig.items.${i}.image`)}
                 />
                 <h3 className="slide-title" {...cp(`destinationsConfig.items.${i}.title`)}>
                   {t(item.title)}
@@ -59,7 +60,6 @@ export default function DestinationsSwiper() {
 
           <div className="d-flex justify-content-center mt-4">
             <BookNowButton
-              configPath="destinationsConfig.bookNowLabel"
               labelPath="destinationsConfig.bookNowLabel"
               label={t(dest.bookNowLabel)}
             />
