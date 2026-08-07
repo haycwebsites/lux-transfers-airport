@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { LocaleString } from '../config';
 import { type RemoteConfig, defaultConfig, fetchRemoteConfig } from './use-remote-config';
+import { renderMarkedText } from './format-markers';
 
 export type Locale = 'el' | 'en';
 
@@ -67,7 +68,8 @@ export function HaycProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener('click', interceptClick, true);
   }, [isEditMode]);
 
-  const t = (val: LocaleString): string => typeof val === 'string' ? val : val[locale] ?? val.en;
+  const t = (val: LocaleString): string =>
+    renderMarkedText(typeof val === 'string' ? val : val[locale] ?? val.en) as string;
   const img = (val: string): string => val;
 
   const cp = useCallback((path: string): object => {
