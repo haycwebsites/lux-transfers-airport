@@ -19,6 +19,10 @@
  * phone     string    Optional. Not validated. Sent if non-empty.
  * age       string    Optional. Not validated. Sent if non-empty.
  * _hp       string    Honeypot. Always sent. Never expose to user.
+ * formId    string    Optional but expected. Stable id from
+ *                     src/forms/registry.ts. Sent only when provided.
+ *                     Lets the HAYC dashboard attribute the lead to a
+ *                     specific form and build automations on it.
  *
  * ─── SIDE EFFECT ────────────────────────────────────────────────────
  * After a successful contact submission, the hook automatically fires
@@ -34,7 +38,16 @@
  * form_submit  Fired automatically on successful submission.
  * form_abandon Fired automatically on page hide with dirty fields.
  *
+ * ─── OPTIONS ────────────────────────────────────────────────────────
+ * formId             string    Stable id from src/forms/registry.ts.
+ * getNewsletterTags  fn        Optional. Receives { phone, age, message }
+ *                              and returns extra tags appended to the
+ *                              newsletter subscribe call, on top of the
+ *                              default ['contact-form'].
+ *
  * ─── RETURN VALUES ──────────────────────────────────────────────────
+ * formId                      — the id passed in options; spread onto the
+ *                               form element as data-hayc-form-id
  * name, setName               — name field state
  * phone, setPhone             — phone field state (optional)
  * age, setAge                 — age field state (optional)
@@ -60,11 +73,12 @@
  *     newsletterOptIn, setNewsletterOptIn,
  *     loading, submitted, error, fieldErrors,
  *     handleSubmit, formStarted, setFormStarted,
- *   } = useContactForm();
+ *   } = useContactForm({ formId: FORM_IDS.contactPage });
  *
- * 2. Wire the existing form markup:
+ * 2. Wire the existing form markup (data-hayc-form-id aids debugging):
  *
- *   <form className="your-form" onSubmit={handleSubmit}>
+ *   <form className="your-form" onSubmit={handleSubmit}
+ *     data-hayc-form-id={formId}>
  *
  *     {/* Honeypot — always include, never style or label *\/}
  *     <input type="text" name="_hp" value={hp}
@@ -127,10 +141,15 @@ import { trackEvent } from './use-analytics';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const HARDCODED_TAGS: string[] = ['contact-form'];
 
-export function useContactForm() {
+export function useContactForm(options?: {
+  formId?: string;
+  getNewsletterTags?: (fields: { phone: string; age: string; message: string }) => string[];
+}) {
   const { t, config } = useHayc();
   const c = config.contactFormConfig;
   const location = useLocation();
+  const formId = options?.formId;
+  const getNewsletterTags = options?.getNewsletterTags;
   const siteId = config.siteConfig.siteId;
   const apiUrl = config.siteConfig.apiUrl;
 
@@ -168,14 +187,14 @@ export function useContactForm() {
         !submitted
       ) {
         trackEvent(apiUrl, siteId, 'form_abandon', location.pathname, {
-          form: 'contact',
+          form: formId ?? 'contact',
         });
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [apiUrl, siteId, location.pathname, submitted]);
+  }, [apiUrl, siteId, location.pathname, submitted, formId]);
 
   const validate = useCallback((): boolean => {
     const errors: { name?: string; email?: string; message?: string } = {};
@@ -209,14 +228,25 @@ export function useContactForm() {
             age: age.trim(),
             email: email.trim(),
             message: message.trim(),
+            ...(formId ? { formId } : {}),
             _hp: hp,
           }),
         });
-        if (!res.ok) throw new Error('Request failed');
+        if (!res.ok) {
+          let apiMessage = '';
+          try {
+            const data = (await res.json()) as { error?: string; message?: string };
+            apiMessage = data.error || data.message || '';
+          } catch {
+            /* ignore parse errors */
+          }
+          console.error('[HAYC contact]', res.status, apiMessage || res.statusText);
+          throw new Error(apiMessage || 'Request failed');
+        }
         setSubmitted(true);
         isDirtyRef.current = false;
         trackEvent(apiUrl, siteId, 'form_submit', location.pathname, {
-          form: 'contact',
+          form: formId ?? 'contact',
         });
         fetch(`${apiUrl}/api/newsletter/subscribe`, {
           method: 'POST',
@@ -226,11 +256,19 @@ export function useContactForm() {
             email: email.trim(),
             name: name.trim(),
             subscribed: newsletterOptIn,
-            tags: HARDCODED_TAGS,
+            tags: [
+              ...HARDCODED_TAGS,
+              ...(getNewsletterTags?.({
+                phone: phone.trim(),
+                age: age.trim(),
+                message: message.trim(),
+              }) ?? []),
+            ],
             _hp: hp,
           }),
         }).catch(() => {});
-      } catch {
+      } catch (err) {
+        console.error('[HAYC contact] submit failed', err);
         setError(t(c.errorText));
       } finally {
         setLoading(false);
@@ -250,10 +288,13 @@ export function useContactForm() {
       c,
       newsletterOptIn,
       location.pathname,
+      formId,
+      getNewsletterTags,
     ]
   );
 
   return {
+    formId,
     name,
     setName,
     phone,

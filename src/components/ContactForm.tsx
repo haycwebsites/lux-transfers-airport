@@ -15,10 +15,13 @@
  *   export function ContactPage() {
  *     return (
  *       <div className="your-page-shell">
- *         <ContactForm />
+ *         <ContactForm formId={FORM_IDS.contactPage} />
  *       </div>
  *     );
  *   }
+ *
+ * Pass formId from src/forms/registry.ts so the submission is
+ * attributable in the HAYC dashboard (Automations).
  *
  * Style the form via these CSS class hooks in a <style> block
  * in your page component:
@@ -73,7 +76,7 @@ const labels = {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function ContactForm() {
+export function ContactForm({ formId }: { formId?: string } = {}) {
   const { t, config } = useHayc();
   const location = useLocation();
   const siteId = config.siteConfig.siteId;
@@ -113,14 +116,14 @@ export function ContactForm() {
         !submitted
       ) {
         trackEvent(apiUrl, siteId, 'form_abandon', location.pathname, {
-          form: 'contact',
+          form: formId ?? 'contact',
         });
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [apiUrl, siteId, location.pathname, submitted]);
+  }, [apiUrl, siteId, location.pathname, submitted, formId]);
 
   const validate = useCallback((): boolean => {
     const errors: { name?: string; email?: string; message?: string } = {};
@@ -152,6 +155,7 @@ export function ContactForm() {
             name: name.trim(),
             email: email.trim(),
             message: message.trim(),
+            ...(formId ? { formId } : {}),
             _hp: hp,
           }),
         });
@@ -159,7 +163,7 @@ export function ContactForm() {
         setSubmitted(true);
         isDirtyRef.current = false;
         trackEvent(apiUrl, siteId, 'form_submit', location.pathname, {
-          form: 'contact',
+          form: formId ?? 'contact',
         });
         /*
          * POST /api/newsletter/subscribe
@@ -199,7 +203,7 @@ export function ContactForm() {
         setLoading(false);
       }
     },
-    [apiUrl, siteId, name, email, message, hp, validate, t, newsletterOptIn]
+    [apiUrl, siteId, name, email, message, hp, validate, t, newsletterOptIn, formId, location.pathname]
   );
 
   if (submitted) {
@@ -294,7 +298,12 @@ export function ContactForm() {
           color: #dc2626;
         }
       `}</style>
-      <form onSubmit={handleSubmit} className="contact-form" noValidate>
+      <form
+        onSubmit={handleSubmit}
+        className="contact-form"
+        noValidate
+        data-hayc-form-id={formId}
+      >
         <input
           type="text"
           name="_hp"
@@ -323,7 +332,7 @@ export function ContactForm() {
               if (!formStarted) {
                 setFormStarted(true);
                 trackEvent(apiUrl, siteId, 'form_start', location.pathname, {
-                  form: 'contact',
+                  form: formId ?? 'contact',
                 });
               }
             }}
@@ -355,7 +364,7 @@ export function ContactForm() {
               if (!formStarted) {
                 setFormStarted(true);
                 trackEvent(apiUrl, siteId, 'form_start', location.pathname, {
-                  form: 'contact',
+                  form: formId ?? 'contact',
                 });
               }
             }}
@@ -386,7 +395,7 @@ export function ContactForm() {
               if (!formStarted) {
                 setFormStarted(true);
                 trackEvent(apiUrl, siteId, 'form_start', location.pathname, {
-                  form: 'contact',
+                  form: formId ?? 'contact',
                 });
               }
             }}

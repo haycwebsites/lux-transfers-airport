@@ -16,10 +16,13 @@
  *     return (
  *       <div className="your-section-shell">
  *         <h2>Stay in touch</h2>
- *         <NewsletterForm />
+ *         <NewsletterForm formId={FORM_IDS.newsletterFooter} />
  *       </div>
  *     );
  *   }
+ *
+ * Pass formId from src/forms/registry.ts so the subscriber is
+ * attributable in the HAYC dashboard (Automations).
  *
  * Following this pattern ensures form_submit analytics tracking
  * is inherited automatically via template syncs.
@@ -33,7 +36,7 @@ import { trackEvent } from '../hayc/use-analytics';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function NewsletterForm() {
+export function NewsletterForm({ formId }: { formId?: string } = {}) {
   const { config } = useHayc();
   const location = useLocation();
   const siteId = config.siteConfig.siteId;
@@ -74,6 +77,7 @@ export function NewsletterForm() {
           body: JSON.stringify({
             siteId,
             email: normalizedEmail,
+            ...(formId ? { formId } : {}),
             _hp: hp,
           }),
         });
@@ -81,7 +85,7 @@ export function NewsletterForm() {
         if (!res.ok) throw new Error('Request failed');
         setSubmitted(true);
         trackEvent(apiUrl, siteId, 'form_submit', location.pathname, {
-          form: 'newsletter',
+          form: formId ?? 'newsletter',
         });
       } catch {
         setError('Something went wrong. Please try again.');
@@ -89,7 +93,7 @@ export function NewsletterForm() {
         setLoading(false);
       }
     },
-    [email, hp, apiUrl, siteId]
+    [email, hp, apiUrl, siteId, formId, location.pathname]
   );
 
   if (submitted) {
@@ -101,7 +105,12 @@ export function NewsletterForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full" noValidate>
+    <form
+      onSubmit={handleSubmit}
+      className="w-full"
+      noValidate
+      data-hayc-form-id={formId}
+    >
       <input
         type="text"
         name="_hp"

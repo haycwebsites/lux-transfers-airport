@@ -30,6 +30,8 @@ jobs:
         run: npm run pull-config
         env:
           VITE_SITE_ID: ${{ vars.SITE_ID }}
+      - name: Check form registry
+        run: npx tsx scripts/check-forms.ts
       - name: Build + export config
         run: npm run build:full
       - name: Sync baseline from config
@@ -41,6 +43,7 @@ jobs:
           git add scripts/.config-base.json src/config.ts
           git diff --staged --quiet || git commit -m "chore: sync config after deploy [skip ci]"
           git remote set-url origin https://x-access-token:${{ secrets.BOT_PAT }}@github.com/${{ github.repository }}
+          git pull --rebase origin main
           git push
         env:
           BOT_PAT: ${{ secrets.BOT_PAT }}

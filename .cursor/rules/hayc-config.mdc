@@ -159,6 +159,75 @@ For every new component that renders config text:
 
 ---
 
+## Form Registry (required for every form)
+
+Every contact and newsletter form is a lead source. The HAYC dashboard
+builds **Automations** on these, and it discovers them by reading the
+`forms` array in `config.json`. A form that is not registered is
+invisible to the client — they cannot automate it at all.
+
+### Rule
+
+Whenever you add, move, or remove a form that uses `useContactForm`,
+`useNewsletterForm`, `<ContactForm>`, or `<NewsletterForm>`, update
+`src/forms/registry.ts` in the same change.
+
+### 1. Register it
+
+```ts
+// src/forms/registry.ts
+export const FORM_IDS = {
+  contactPage: 'contact-page',
+  newsletterFooter: 'newsletter-footer',
+} as const;
+
+export const siteForms: HaycFormDefinition[] = [
+  { id: FORM_IDS.contactPage, name: 'Contact', page: '/contact', type: 'contact' },
+  { id: FORM_IDS.newsletterFooter, name: 'Newsletter — Footer', type: 'newsletter' },
+];
+```
+
+- **Keep ids stable.** Never change an existing id — it orphans any
+  automation the client already built on it. Add new ones instead.
+- **`name` is for the client**, not for you. It is the label shown in
+  their dashboard: 'Contact', 'Newsletter — Footer', 'Book a Call'.
+- **`page`** is the route the form sits on. Omit it for site-wide forms.
+- **`type`** is `contact` (POST /public/contact) or `newsletter`
+  (POST /api/newsletter/subscribe).
+
+### 2. Wire the call site
+
+```tsx
+import { FORM_IDS } from '../forms/registry';
+
+const { formId, handleSubmit, ... } = useContactForm({ formId: FORM_IDS.contactPage });
+
+<form onSubmit={handleSubmit} data-hayc-form-id={formId}>
+```
+
+Same for newsletter forms:
+
+```tsx
+const { formId, handleSubmit, ... } = useNewsletterForm({
+  formId: FORM_IDS.newsletterFooter,
+  tags: ['footer'],
+});
+```
+
+Always reference `FORM_IDS.x` rather than retyping the string, so the id
+is written in exactly one place.
+
+### 3. Verify
+
+```bash
+npm run check-forms
+```
+
+This fails if a form has no `formId`, if a `formId` is unregistered, or
+if a registry entry has no live call site. Run it before every deploy.
+
+---
+
 ## When integrating a new Kimi or Relume export
 
 1. **Verify HaycProvider** wraps the app in `App.tsx`
@@ -176,6 +245,8 @@ For every new component that renders config text:
 5. **Update scripts/export-config.ts** — add new config exports to both:
    - The import statement
    - The `config` object
+5b. **Register every form** in `src/forms/registry.ts` and pass `formId` at
+   each call site — see "Form Registry" above. Verify with `npm run check-forms`.
 6. Run `tsc --noEmit` — fix any TypeScript errors
 7. Run `npm run dev` — verify the component renders correctly **with visible text**
 8. **Deploy:** Use `npm run build:full` for manual deploys, or push to trigger GitHub Actions
@@ -219,6 +290,8 @@ const config = {
 7. **Using `npm run build` instead of `npm run build:full`** — Config won't be exported for manual deploys
 8. **Forgetting cp() on elements** — Click-to-edit won't work for that element in the CMS
 9. **Wrong cp() path** — CMS opens the wrong section; path must exactly match the config key used in t()
+10. **Unregistered form** — the form works, but the client cannot build any Automation on it; register it in `src/forms/registry.ts`
+11. **Changing an existing form id** — silently breaks every automation the client already built on that form
 
 ### Before Every Work Session
 
