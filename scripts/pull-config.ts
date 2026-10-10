@@ -29,7 +29,9 @@ if (!SITE_ID) {
 const CONFIG_URL = `${BUCKET_BASE}/sites/${SITE_ID}/config/config.json?t=${Date.now()}`;
 const configTsPath = path.resolve(__dirname, '../src/config.ts');
 const configBasePath = path.resolve(__dirname, '.config-base.json');
-const SKIP_KEYS = new Set(['version', 'exportedAt']);
+// 'forms' is generated at export time from src/forms/registry.ts (the source of
+// truth for HAYC Automations). Never pull it back into src/config.ts.
+const SKIP_KEYS = new Set(['version', 'exportedAt', 'forms']);
 
 function escapeString(str: string): string {
   return str

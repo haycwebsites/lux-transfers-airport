@@ -25,9 +25,18 @@
  * subscribed    boolean   Driven by newsletterOptIn. Default: true.
  *                         false = contact recorded as unsubscribed.
  * _hp           string    Honeypot. Always sent. Never expose to user.
+ * formId        string    Optional but expected. Stable id from
+ *                         src/forms/registry.ts. Sent only when provided.
+ *                         Lets the HAYC dashboard attribute the lead to a
+ *                         specific form and build automations on it.
  *
  * ─── OPTIONS ────────────────────────────────────────────────────────
- * useNewsletterForm({ tags: ['cta-about'] })
+ * useNewsletterForm({ formId: FORM_IDS.newsletterFooter, tags: ['cta-about'] })
+ *
+ * formId identifies the form to the HAYC dashboard (Automations) and must
+ * match an entry in src/forms/registry.ts. Spread it onto the form element
+ * as data-hayc-form-id={formId} for debugging.
+ *
  * Pass custom tags to identify which form/section the subscriber
  * came from. Use a different tag per form placement:
  *   'newsletter-form'  — footer or dedicated newsletter section
@@ -37,6 +46,8 @@
  *   'contact-form'     — fired internally by useContactForm
  *
  * ─── RETURN VALUES ──────────────────────────────────────────────────
+ * formId                      — the id passed in options; spread onto the
+ *                               form element as data-hayc-form-id
  * email, setEmail             — email field state (required)
  * name, setName               — name field state (optional)
  * firstName, setFirstName     — firstName field state (optional)
@@ -109,8 +120,9 @@ import { useHayc } from './config-context';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function useNewsletterForm(options?: { tags?: string[] }) {
+export function useNewsletterForm(options?: { formId?: string; tags?: string[] }) {
   const tags = options?.tags ?? ['newsletter-form'];
+  const formId = options?.formId;
   const { t, config } = useHayc();
   const apiUrl = config.siteConfig.apiUrl;
   const siteId = config.siteConfig.siteId;
@@ -156,6 +168,7 @@ export function useNewsletterForm(options?: { tags?: string[] }) {
             ...(group.trim() && { group: group.trim() }),
             subscribed: newsletterOptIn,
             tags,
+            ...(formId ? { formId } : {}),
             _hp: hp,
           }),
         });
@@ -167,10 +180,11 @@ export function useNewsletterForm(options?: { tags?: string[] }) {
         setLoading(false);
       }
     },
-    [apiUrl, siteId, email, name, firstName, lastName, group, hp, newsletterOptIn, tags]
+    [apiUrl, siteId, email, name, firstName, lastName, group, hp, newsletterOptIn, tags, formId]
   );
 
   return {
+    formId,
     email,
     setEmail,
     name,
