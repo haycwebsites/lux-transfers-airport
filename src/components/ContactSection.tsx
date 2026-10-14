@@ -1,5 +1,6 @@
 import { useHayc } from '../hayc/config-context';
 import { ContactForm } from './ContactForm';
+import { FORM_IDS } from '../forms/registry';
 
 export default function ContactSection() {
   const { t, config, cp } = useHayc();
@@ -48,7 +49,7 @@ export default function ContactSection() {
             </div>
             <div className="col-md-6 contact-right d-flex align-items-center">
               <div className="contact-form-shell w-100">
-                <ContactForm />
+                <ContactForm formId={FORM_IDS.contactPage} />
               </div>
             </div>
           </div>
