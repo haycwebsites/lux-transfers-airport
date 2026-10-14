@@ -20,6 +20,7 @@ import {
   privacyConfig,
   bookingPageConfig,
 } from '../src/config.js';
+import { siteForms } from '../src/forms/registry.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,6 +45,8 @@ const config = {
   blogConfig,
   privacyConfig,
   bookingPageConfig,
+  /** HAYC Automations — discoverable forms. Source: src/forms/registry.ts */
+  forms: siteForms,
 };
 
 const projectRoot = path.resolve(__dirname, '../../');
