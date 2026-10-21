@@ -19,6 +19,7 @@ import {
   blogConfig,
   privacyConfig,
   bookingPageConfig,
+  assistantConfig,
 } from '../src/config.js';
 import { siteForms } from '../src/forms/registry.js';
 
@@ -28,6 +29,7 @@ const __dirname = path.dirname(__filename);
 const config = {
   version: 1,
   exportedAt: new Date().toISOString(),
+  assistantConfig,
   siteConfig,
   digitalProductsConfig,
   navigationConfig,

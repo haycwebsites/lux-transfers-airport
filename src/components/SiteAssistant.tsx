@@ -49,7 +49,26 @@ function snippet(text: string): string {
 
 export function SiteAssistant() {
   const { config, locale, cp } = useHayc();
-  const assistant = (config as { assistantConfig?: AssistantConfig }).assistantConfig;
+  const fromContext = (config as { assistantConfig?: AssistantConfig }).assistantConfig;
+  // Some repos' use-remote-config.ts merge config.json into a fixed set of
+  // sections and drop unknown ones such as assistantConfig. If it is missing
+  // in production, read it straight from config.json — the app fetched that
+  // file moments ago, so this normally comes from the HTTP cache.
+  const [fetched, setFetched] = useState<AssistantConfig | null>(null);
+  useEffect(() => {
+    if (fromContext || import.meta.env.DEV) return;
+    let cancelled = false;
+    fetch('/hayc/config.json')
+      .then(res => (res.ok ? res.json() : null))
+      .then((data: { assistantConfig?: AssistantConfig } | null) => {
+        if (!cancelled && data?.assistantConfig) setFetched(data.assistantConfig);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [fromContext]);
+  const assistant = fromContext ?? fetched ?? undefined;
   const searchLocale: SearchLocale = locale === 'en' ? 'en' : 'el';
   const tx = (val?: LocaleString): string => (val ? val[searchLocale] || val.en || val.el || '' : '');
   const [open, setOpen] = useState(false);

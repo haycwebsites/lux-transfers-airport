@@ -32,11 +32,13 @@ import {
   type BlogConfig,
   type PrivacyConfig,
   type BookingPageConfig,
+  assistantConfig,
 } from '../config';
 
 export interface RemoteConfig {
   version: number;
   exportedAt: string;
+  assistantConfig?: typeof assistantConfig;
   siteConfig: typeof siteConfig;
   digitalProductsConfig?: DigitalProductsConfig;
   navigationConfig: NavigationConfig;
@@ -59,6 +61,7 @@ export interface RemoteConfig {
 export const defaultConfig: RemoteConfig = {
   version: 1,
   exportedAt: '',
+  assistantConfig,
   siteConfig,
   digitalProductsConfig,
   navigationConfig,
