@@ -228,6 +228,39 @@ if a registry entry has no live call site. Run it before every deploy.
 
 ---
 
+## Smart Assistant (FAQ widget)
+
+`<SiteAssistant />` (mounted once in `App.tsx`) is a floating chat-style widget
+that answers visitor questions from the site's own config. It is **not AI** —
+it is client-side search (MiniSearch) over `assistantConfig.faqs` plus all other
+config text. Never market it as an "AI assistant".
+
+Turn it on per site in `src/config.ts`:
+
+```ts
+export const assistantConfig: AssistantConfig = {
+  enabled: true,
+  // ...UI texts already have bilingual defaults
+  faqs: [
+    {
+      question: { el: 'Ποιες είναι οι τιμές;', en: 'What are the prices?' },
+      answer: { el: 'Από **800€** τη βραδιά.', en: 'From **€800** per night.' },
+      keywords: { el: 'κόστος χρέωση πόσο κοστίζει', en: 'cost rate how much' },
+      link: '#prices',
+    },
+  ],
+};
+```
+
+- Write 5–10 FAQs about what visitors actually ask (prices, hours, location, booking, pets, parking…).
+- `keywords` holds synonyms the visitor might type that aren't in the question/answer. This is what makes matching good.
+- The first 4 FAQs are shown as suggestion chips.
+- Content elsewhere in the config is searched automatically (`searchSiteContent: true`).
+- **Set `searchSections`** to the config sections of the pages the site actually routes to (check `App.tsx`), plus shared ones like `footerConfig` and `contactPageConfig`. Sections left over from the source template often hold placeholder content (fake prices, demo blog posts) that would otherwise be given as answers.
+- Unmatched questions show `noResults` and a button to `contactLink`.
+
+---
+
 ## When integrating a new Kimi or Relume export
 
 1. **Verify HaycProvider** wraps the app in `App.tsx`
