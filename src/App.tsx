@@ -10,6 +10,7 @@ import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import { blogConfig } from './config';
+import SiteAssistant from './components/SiteAssistant';
 
 function AppContent() {
   useAnalytics();
@@ -56,6 +57,7 @@ function App() {
       <BrowserRouter>
         <AppContent />
       </BrowserRouter>
+      <SiteAssistant />
     </HaycProvider>
   );
 }
