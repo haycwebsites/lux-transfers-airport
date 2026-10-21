@@ -717,5 +717,45 @@
     },
     "iframeSrc": "https://transfers.bookingplan.eu/carweb/goluxtaxi-and-minivan-transfers/en/?cid=MA==",
     "image": "/images/create-two-black-van-mercedes-car-transfer.webp"
+  },
+  "assistantConfig": {
+    "enabled": false,
+    "searchSiteContent": true,
+    "searchSections": [],
+    "accentColor": "",
+    "title": {
+      "el": "Έξυπνος Βοηθός",
+      "en": "Smart Assistant"
+    },
+    "greeting": {
+      "el": "Γεια σας! Κάντε μου μια ερώτηση για εμάς και θα βρω την απάντηση.",
+      "en": "Hi! Ask me a question about us and I will find the answer."
+    },
+    "placeholder": {
+      "el": "Γράψτε την ερώτησή σας...",
+      "en": "Type your question..."
+    },
+    "sendLabel": {
+      "el": "Αποστολή",
+      "en": "Send"
+    },
+    "closeLabel": {
+      "el": "Κλείσιμο",
+      "en": "Close"
+    },
+    "linkLabel": {
+      "el": "Περισσότερα",
+      "en": "Learn more"
+    },
+    "noResults": {
+      "el": "Δεν βρήκα απάντηση σε αυτό. Επικοινωνήστε μαζί μας και θα σας απαντήσουμε σύντομα.",
+      "en": "I could not find an answer to that. Get in touch and we will reply soon."
+    },
+    "contactLabel": {
+      "el": "Επικοινωνία",
+      "en": "Contact us"
+    },
+    "contactLink": "/contact",
+    "faqs": []
   }
 }
