@@ -217,6 +217,40 @@ export interface DigitalProductsConfig {
 
 
 
+
+export interface AssistantFaq {
+  question: LocaleString;
+  answer: LocaleString;
+  /** Extra search words visitors might use (synonyms), space separated. */
+  keywords: LocaleString;
+  /** Optional link shown under the answer, e.g. '/contact' or '#rooms'. */
+  link: string;
+}
+
+export interface AssistantConfig {
+  enabled: boolean;
+  /** Also search the rest of the site's content, not only the FAQs. */
+  searchSiteContent: boolean;
+  /**
+   * Config sections to search, e.g. ['indexPageConfig', 'aboutPageConfig'].
+   * Empty searches every section. List only the pages the site really
+   * uses, so leftover placeholder content is never shown as an answer.
+   */
+  searchSections: string[];
+  /** Optional CSS color for the widget; empty uses the site's --primary. */
+  accentColor: string;
+  title: LocaleString;
+  greeting: LocaleString;
+  placeholder: LocaleString;
+  sendLabel: LocaleString;
+  closeLabel: LocaleString;
+  linkLabel: LocaleString;
+  noResults: LocaleString;
+  contactLabel: LocaleString;
+  contactLink: string;
+  faqs: AssistantFaq[];
+}
+
 // =============================================================================
 // CONSTANTS
 // =============================================================================
@@ -656,4 +690,27 @@ export const bookingPageConfig: BookingPageConfig = {
   },
   "iframeSrc": "https://transfers.bookingplan.eu/carweb/goluxtaxi-and-minivan-transfers/en/?cid=MA==",
   "image": "/images/create-two-black-van-mercedes-car-transfer.webp"
+};
+
+export const assistantConfig: AssistantConfig = {
+  enabled: false,
+  searchSiteContent: true,
+  searchSections: [],
+  accentColor: '',
+  title: { el: 'Έξυπνος Βοηθός', en: 'Smart Assistant' },
+  greeting: {
+    el: 'Γεια σας! Κάντε μου μια ερώτηση για εμάς και θα βρω την απάντηση.',
+    en: 'Hi! Ask me a question about us and I will find the answer.',
+  },
+  placeholder: { el: 'Γράψτε την ερώτησή σας...', en: 'Type your question...' },
+  sendLabel: { el: 'Αποστολή', en: 'Send' },
+  closeLabel: { el: 'Κλείσιμο', en: 'Close' },
+  linkLabel: { el: 'Περισσότερα', en: 'Learn more' },
+  noResults: {
+    el: 'Δεν βρήκα απάντηση σε αυτό. Επικοινωνήστε μαζί μας και θα σας απαντήσουμε σύντομα.',
+    en: 'I could not find an answer to that. Get in touch and we will reply soon.',
+  },
+  contactLabel: { el: 'Επικοινωνία', en: 'Contact us' },
+  contactLink: '/contact',
+  faqs: [],
 };
